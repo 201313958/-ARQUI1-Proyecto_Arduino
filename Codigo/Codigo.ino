@@ -51,10 +51,18 @@ String estacion_actual;
 bool flag_parcearCadena = false;
 int contador_estaciones = 0;
 char caracter;
+char caracter_emergencia;
+bool estado_emergencia = false;
 
 void setup() {
   Serial.begin(9600);
   Serial1.begin(9600);
+  
+  //Motores Stepper
+  pinMode(29, OUTPUT);
+  pinMode(30, OUTPUT);
+  pinMode(31, OUTPUT);
+  pinMode(32, OUTPUT);
 
   //pantalla
   lcd.begin(16, 2); //16 columnas y 2 filas
@@ -99,8 +107,8 @@ void Estacion() {
     } else if (caracter == '3') {
       estacion_actual = "3";
     } else if (caracter == '4') {
-      estacion_actual = "4";
-      //PENDIENTE BOTON DE EMERGENCIA
+      estado_emergencia = true;
+      Serial1.println("EMERGENCIA!");
     }
   } else {
     estacion_actual = "error";
@@ -123,6 +131,7 @@ String Recibiendo_Cadena() {
 void loop() {
   switch (estado) {
     case 1:
+      stepper();
       USUARIO();
       delay(50);
       break;
@@ -135,7 +144,21 @@ void loop() {
       break;
     case 3:
       Estacion();
+      if (estado_emergencia == true) {
+        estado_emergencia = false;
+        cadena = "";
+        estacion = 0;
+        topar = 3;
+        estacion_actual = "";
+        estado = 2;
+        contador_estaciones = 0;
+        matrizLED.fillScreen(LOW);
+        matrizLED.write();
+        Serial1.println("Limpia Valores y Resetea");
+        break;
+      }
       if (estacion_actual != "error") {
+        contador_estaciones++;
         serial_Estacion(estacion_actual);
         estacion_actual == "";
         Serial1.println(contador_estaciones);
@@ -228,6 +251,18 @@ void parsearEstacion(String cadena) {
     estacion = 3;
   } else if (cadena[0] == 52) {
     estacion = 4;
+  }
+  if (estado_emergencia == true) {
+    estado_emergencia = false;
+    cadena = "";
+    estacion = 0;
+    topar = 3;
+    estacion_actual = "";
+    estado = 2;
+    contador_estaciones = 0;
+    matrizLED.fillScreen(LOW);
+    matrizLED.write();
+    Serial1.println("Limpia Valores y Resetea");
   }
 }
 
@@ -362,7 +397,19 @@ void imprimirPanel4(int numero) {
   int x = 26;
   int y = 0;
   int veces = 0;
-
+  Estacion();
+  if (estado_emergencia == true) {
+    estado_emergencia = false;
+    cadena = "";
+    estacion = 0;
+    topar = 0;
+    estacion_actual = "";
+    estado = 2;
+    contador_estaciones = 0;
+    matrizLED.fillScreen(LOW);
+    matrizLED.write();
+    Serial1.println("Limpia Valores y Resetea");
+  }
   switch (numero) {
     case 1: matrizLED.drawChar(x, y, '1', HIGH, LOW, 1);
       matrizLED.write();
@@ -379,6 +426,20 @@ void imprimirPanel4(int numero) {
         limpiarPanel(1);
         delay(100);
         veces++;
+        Estacion();
+        if (estado_emergencia == true) {
+          estado_emergencia = false;
+          cadena = "";
+          estacion = 0;
+          topar = 0;
+          estacion_actual = "";
+          estado = 2;
+          contador_estaciones = 0;
+          matrizLED.fillScreen(LOW);
+          matrizLED.write();
+          Serial1.println("Limpia Valores y Resetea");
+          break;
+        }
       }
       verificarTopar();
 
@@ -400,6 +461,20 @@ void imprimirPanel4(int numero) {
         limpiarPanel(2);
         delay(100);
         veces++;
+        Estacion();
+        if (estado_emergencia == true) {
+          estado_emergencia = false;
+          cadena = "";
+          estacion = 0;
+          topar = 0;
+          estacion_actual = "";
+          estado = 2;
+          contador_estaciones = 0;
+          matrizLED.fillScreen(LOW);
+          matrizLED.write();
+          Serial1.println("Limpia Valores y Resetea");
+          break;
+        }
       }
       verificarTopar();
       //verificarTopar();
@@ -419,6 +494,20 @@ void imprimirPanel4(int numero) {
         limpiarPanel(3);
         delay(100);
         veces++;
+        Estacion();
+        if (estado_emergencia == true) {
+          estado_emergencia = false;
+          cadena = "";
+          estacion = 0;
+          topar = 0;
+          estacion_actual = "";
+          estado = 2;
+          contador_estaciones = 0;
+          matrizLED.fillScreen(LOW);
+          matrizLED.write();
+          Serial1.println("Limpia Valores y Resetea");
+          break;
+        }
       }
       verificarTopar();
       //verificarTopar();
@@ -439,9 +528,36 @@ void imprimirPanel4(int numero) {
             matrizLED.drawPixel(x + 24, y, HIGH);
             matrizLED.write();
           }
+          Estacion();
+          if (estado_emergencia == true) {
+            estado_emergencia = false;
+            cadena = "";
+            estacion = 0;
+            topar = 0;
+            estacion_actual = "";
+            estado = 2;
+            contador_estaciones = 0;
+            matrizLED.fillScreen(LOW);
+            matrizLED.write();
+            Serial1.println("Limpia Valores y Resetea");
+            break;
+          }
+        }
+        Estacion();
+        if (estado_emergencia == true) {
+          estado_emergencia = false;
+          cadena = "";
+          estacion = 0;
+          topar = 0;
+          estacion_actual = "";
+          estado = 2;
+          contador_estaciones = 0;
+          matrizLED.fillScreen(LOW);
+          matrizLED.write();
+          Serial1.println("Limpia Valores y Resetea");
+          break;
         }
       }
-
       break;
   }
 }
@@ -451,5 +567,27 @@ void serial_Estacion(String recibir) {
   parsearEstacion(recibir);
   //Llamamos al panel cuatro que muestra el panel correcto
   imprimirPanel4(estacion);
-  contador_estaciones++;
+}
+
+void stepper() {
+  digitalWrite(29, HIGH);
+  digitalWrite(30, LOW);
+  digitalWrite(31, LOW);
+  digitalWrite(32, LOW);
+  delay(180);
+  digitalWrite(29, LOW);
+  digitalWrite(30, HIGH);
+  digitalWrite(31, LOW);
+  digitalWrite(32, LOW);
+  delay(180);
+  digitalWrite(29, LOW);
+  digitalWrite(30, LOW);
+  digitalWrite(31, HIGH);
+  digitalWrite(32, LOW);
+  delay(180);
+  digitalWrite(29, LOW);
+  digitalWrite(30, LOW);
+  digitalWrite(31, LOW);
+  digitalWrite(32, HIGH);
+  delay(180);
 }
