@@ -63,7 +63,7 @@ Max72xxPanel matrizLED = Max72xxPanel(pinCS, numeroMatricesHorizontales, numeroM
 byte pin_rows[ROW_NUM] = {25, 26, 27, 28}; //connect to the row pinouts of the keypad
 byte pin_column[COLUMN_NUM] = {22, 23, 24}; //connect to the column pinouts of the keypad
 
-const String password = "1"; // change your password here
+const String password = "123456"; // change your password here
 String input_password;
 String autorizacion = "";
 
